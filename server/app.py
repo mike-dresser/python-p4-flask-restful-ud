@@ -52,7 +52,7 @@ class Newsletters(Resource):
             title=request.form['title'],
             body=request.form['body'],
         )
-
+        
         db.session.add(new_record)
         db.session.commit()
 
@@ -70,15 +70,31 @@ api.add_resource(Newsletters, '/newsletters')
 class NewsletterByID(Resource):
 
     def get(self, id):
-
         response_dict = Newsletter.query.filter_by(id=id).first().to_dict()
-
         response = make_response(
             response_dict,
             200,
         )
 
         return response
+
+    def patch(self, id):
+
+        json_data = request.get_json()
+        letter_by_id = Newsletter.query.filter_by(id=id).first()
+        for key, value in json_data.items():
+            setattr(letter_by_id, key, value)
+        db.session.add(letter_by_id)
+        db.session.commit()
+
+        return make_response(letter_by_id.to_dict(), 200)
+
+    def delete(self, id):
+        record = Newsletter.query.filter_by(id=id).first()
+        db.session.delete(record)
+        db.session.commit()
+
+        return make_response({"message": "record successfully deleted"}, 200)
 
 api.add_resource(NewsletterByID, '/newsletters/<int:id>')
 
